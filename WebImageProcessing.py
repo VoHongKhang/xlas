@@ -1,8 +1,163 @@
 import cv2
+import numpy as np
+
+L = 256
+
+def Erosion(imgin, imgout):
+    w = cv2.getStructuringElement(cv2.MORPH_RECT,(45,45))
+    cv2.erode(imgin,w,imgout)
+    return imgout
+
+def Dilation(imgin, imgout):
+    w = cv2.getStructuringElement(cv2.MORPH_RECT,(3,3))
+    cv2.dilate(imgin,w,imgout)
+    return imgout
+def OpeningClosing(imgin, imgout):
+    w = cv2.getStructuringElement(cv2.MORPH_RECT,(3,3))
+    temp = cv2.morphologyEx(imgin, cv2.MORPH_OPEN, w)
+    cv2.morphologyEx(temp, cv2.MORPH_CLOSE, w, imgout)
+    return imgout
+def Boundary(imgin):
+    w = cv2.getStructuringElement(cv2.MORPH_RECT,(3,3))
+    temp = cv2.erode(imgin,w)
+    imgout = imgin - temp
+    return imgout
+
+
+
+import cv2
+import numpy as np
+#import easyocr as ocr  
+from PIL import Image
+
+L = 256
+#-----Function Chapter 3-----#
+def Negative(imgin,imageout):
+    M, N, chanel = imgin.shape
+    for x in range(0, M):
+        for y in range(0, N):
+            r = imgin[x, y]
+            s = L - 1 - r
+            imageout[x, y] = s
+    return imageout
+def Logarit(imgin,imageout):
+    print(np.max(imgin))  
+    c = (255)/np.log(1+np.max(imgin))
+    s = c*(np.log(1 + imgin))
+    imageout = np.array(s, dtype=np.uint8)
+    return imageout
+
+def Power(imgin,imageout):
+    imageout
+    M, N, chanel= imgin.shape
+    gamma = 5.0
+    c = np.power(256 - 1, 1 - gamma)
+    for x in range(0, M):
+        for y in range(0, N):
+            r = imgin[x, y]
+            s = c*np.power(r, gamma)
+            imageout[x, y] = s.astype(np.uint8)
+    return imageout
+
+def HistogramEqualization(imgin, imgout):
+    M, N,ncl = imgin.shape
+    h = np.zeros(L, np.int32)
+    for x in range(0, M):
+        for y in range(0, N):
+            r = imgin[x, y]
+            h[r] = h[r] + 1
+
+    p = np.zeros(L, np.float)
+    for r in range(0, L):
+        p[r] = h[r]/(M*N)
+
+    s = np.zeros(L, np.float)
+    for k in range(0, L):
+        for j in range(0, k + 1):
+            s[k] = s[k] + p[j]
+        s[k] = s[k]*(L-1)
+
+    for x in range(0, M):
+        for y in range(0, N):
+            r = imgin[x, y]
+            imgout[x, y] = s[r].astype(np.uint8)
+    return imgout
+
+
+
+def Smoothing(imgin):
+    M, N, h = imgin.shape
+    m = 21
+    n = 21
+    a = m // 2
+    b = m // 2
+    w = np.ones((m,n),np.float)/(m*n)
+    imgout = cv2.filter2D(imgin,cv2.CV_8UC1, w)
+    # imgout = cv2.blur(imgin, (m,n))
+    return imgout
+
+def SmoothingGauss(imgin):
+    # M, N, h = imgin.shape
+    # m = 51
+    # n = 51
+    # a = m // 2
+    # b = m // 2
+    # sigma = 7.0
+    # w = np.zeros((m,n), np.float)
+    # for s in range(-a, a+1):
+    #     for t in range(-b, b+1):
+    #         w[s+a, t+b] = np.exp(-(s*s + t*t)/(2*sigma*sigma))
+    # sum = np.sum(w)
+    # w = w/sum
+    # imgout = cv2.filter2D(imgin,cv2.CV_8UC1, w)
+    imgout = cv2.GaussianBlur(imgin, (5,5),cv2.BORDER_DEFAULT)
+    return imgout
+
+def MeanFilter(imgin):
+    kernel = np.ones((10,10),np.float32)/25
+    imgout = cv2.filter2D(imgin,-1,kernel)
+    return imgout
+def MedianFilter(imgin):
+    imgout = cv2.medianBlur(imgin,5)
+    return imgout
+
+def Sharpen(imgin):
+    w = np.array([[1, 1, 1], [1, -8, 1], [1, 1, 1]], np.int32)
+    temp = cv2.filter2D(imgin, cv2.CV_32FC1, w)
+    result = imgin - temp
+    result = np.clip(result, 0, L-1)
+    imgout = result.astype(np.uint8)
+    return imgout
+def Bileteral(imgin):
+    imgout = cv2.bilateralFilter(imgin,60,60,60)
+    return imgout
+def UnSharpMasking(imgin):
+    blur = cv2.GaussianBlur(imgin, (3, 3), 1.0).astype(np.float)
+    mask = imgin - blur
+    k = 10.0
+    imgout = imgin + k*mask
+    imgout = np.clip(imgout, 0, L-1).astype(np.uint8)
+    return imgout
+def LowPass(imgin):
+    kernel = np.ones((10,10),np.float32)/25
+    lp = cv2.filter2D(imgin,-1,kernel)
+    lp = imgin - lp
+    return lp
+
+def Gradient(imgin):
+    wx = np.array([[-1, -2, -1], [0, 0, 0], [1, 2, 1]], np.int32)
+    wy = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], np.int32)
+    gx = cv2.filter2D(imgin, cv2.CV_32FC1, wx);
+    gy = cv2.filter2D(imgin, cv2.CV_32FC1, wy);
+    g = abs(gx) + abs(gy)
+    imgout = np.clip(g, 0, L-1).astype(np.uint8)
+    return imgout
+
+
+import cv2
 import streamlit as st
 import numpy as np
-import https://github.com/VoHongKhang/xlas/blob/main/Chapter3.py as c3
-import https://github.com/VoHongKhang/xlas/blob/main/Chapter9.py as c9
+
 from PIL import Image
 from streamlit_option_menu import option_menu
 import os
@@ -47,6 +202,9 @@ detection_model = model_builder.build(model_config=configs['model'], is_training
 # Restore checkpoint
 ckpt = tf.compat.v2.train.Checkpoint(model=detection_model)
 ckpt.restore(os.path.join(CHECKPOINT_PATH, 'ckpt-6')).expect_partial()
+
+
+
 
 def brighten_image(image, amount):
     img_bright = cv2.convertScaleAbs(image, beta=amount)
@@ -145,46 +303,46 @@ def EditImage_loop():
         processed_image = enhance_details(processed_image)
     # C3 ----------------------------------------------------------------- 
     if apply_Negative_filter: 
-        processed_image = c3.Negative(original_image,processed_image)
+        processed_image = Negative(original_image,processed_image)
     
     if apply_Power_filter:
-        processed_image = c3.Power(original_image,processed_image)
+        processed_image = Power(original_image,processed_image)
     
     if apply_HistogramEqualization_filter:
-        processed_image = c3.HistogramEqualization(original_image,processed_image)
+        processed_image = HistogramEqualization(original_image,processed_image)
     
     if apply_Smoothing_filter:
-        processed_image = c3.Smoothing(original_image) 
+        processed_image = Smoothing(original_image) 
     if apply_Gauss_filter:
-        processed_image = c3.SmoothingGauss(original_image)
+        processed_image = SmoothingGauss(original_image)
     
     if apply_Sharpen_filter:
-        processed_image = c3.Sharpen(original_image)
+        processed_image = Sharpen(original_image)
     if apply_UnSharpMasking_filter:
-        processed_image = c3.UnSharpMasking(original_image)
+        processed_image = UnSharpMasking(original_image)
     
     if apply_Gradient_filter: #O
-        processed_image = c3.Gradient(original_image)
+        processed_image = Gradient(original_image)
 
     if apply_Erosion_filter: #O
-        processed_image = c9.Erosion(original_image,processed_image)
+        processed_image = Erosion(original_image,processed_image)
     if apply_Dilation_filter: #O
-        processed_image = c9.Dilation(original_image,processed_image)
+        processed_image = Dilation(original_image,processed_image)
     if apply_OpeningClosing_filter: #O
-        processed_image = c9.OpeningClosing(original_image,processed_image)
+        processed_image = OpeningClosing(original_image,processed_image)
     if apply_Boundary_filter: #O
-        processed_image = c9.Boundary(original_image)
+        processed_image = Boundary(original_image)
     if apply_Mean_filter:
-        processed_image = c3.MeanFilter(original_image)
+        processed_image = MeanFilter(original_image)
 
     if apply_Median_filter: 
-        processed_image = c3.MedianFilter(original_image)
+        processed_image = MedianFilter(original_image)
 
     if apply_Bileteral_filter:
-        processed_image = c3.Bileteral(original_image)
+        processed_image = Bileteral(original_image)
 
     if apply_LowPass_filter:
-        processed_image = c3.LowPass(original_image)
+        processed_image = LowPass(original_image)
     if chek == 'File':
         original_image = cv2.resize(original_image,(512,512))
         processed_image = cv2.resize(processed_image,(512,512))
