@@ -2,7 +2,7 @@ import cv2
 import streamlit as st
 import numpy as np
 import https://github.com/VoHongKhang/xlas/blob/main/Chapter3.py as c3
-https://github.com/VoHongKhang/xlas/blob/main/Chapter9.py as c9
+import https://github.com/VoHongKhang/xlas/blob/main/Chapter9.py as c9
 from PIL import Image
 from streamlit_option_menu import option_menu
 import os
